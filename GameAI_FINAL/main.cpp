@@ -3,6 +3,7 @@
 #include <SDL_ttf.h>
 #include <stdio.h>
 #include <string>
+#include "Game.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 532;
@@ -20,51 +21,6 @@ SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* gImage = NULL;
 
-enum KeyPressSurfaces {
-	KEY_PRESS_SURFACE_DEFAULT,
-	KEY_PRESS_SURFACE_UP,
-	KEY_PRESS_SURFACE_DOWN,
-	KEY_PRESS_SURFACE_LEFT,
-	KEY_PRESS_SURFACE_RIGHT,
-	KEY_PRESS_SURFACE_TOTAL
-};
-
-bool init() 
-{
-	bool success = true;
-
-	//initialize sdl
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) 
-	{
-		printf("SDL could not initialize! SDL_ERROR: %s\n", SDL_GetError());
-		success = false;
-	}
-	else 
-	{
-		//Create window
-		gWindow = SDL_CreateWindow("Game AI Final", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-		if (gWindow == NULL) 
-		{
-			printf("Window could not be created! SDL_ERROR: %s\n", SDL_GetError());
-			success = false;
-		}
-		else
-		{
-			int imgFlags = IMG_INIT_PNG;
-			if (!(IMG_Init(imgFlags) & imgFlags)) 
-			{
-				printf("SDL_image could not initialize! SDL_image Error %s\n", IMG_GetError());
-				success = false;
-			}
-			else 
-			{
-				//Get window surface
-				gScreenSurface = SDL_GetWindowSurface(gWindow);
-			}
-		}
-	}
-	return success;
-}
 
 SDL_Surface* loadSurface(std::string path) 
 {
@@ -114,14 +70,13 @@ void close()
 	//Destroy window
 	SDL_DestroyWindow(gWindow);
 	gWindow = NULL;
-
-	//Quit SDL
-	SDL_Quit();
 }
 
 int main(int argc, char* args[])
 {
-	if (!init()) 
+	Game::createInstance();
+	Game* p_game = Game::getInstance();
+	if (!p_game->init(SCREEN_WIDTH, SCREEN_HEIGHT)) 
 	{
 		printf("Failed to initialize!\n");
 	}
@@ -172,11 +127,12 @@ int main(int argc, char* args[])
 				//Apply image
 				SDL_BlitSurface(gImage, NULL, gScreenSurface, NULL);
 				//Update surface
-				SDL_UpdateWindowSurface(gWindow);
+				SDL_UpdateWindowSurface(p_game->getWindow());
 			}
 		}
 	}
 
 	close();
+	delete p_game;
 	return 0;
 }
