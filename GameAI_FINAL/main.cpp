@@ -5,20 +5,25 @@
 #include <string>
 #include "Game.h"
 #include "Texture.h"
+#include "Tile.h"
+#include <vector>
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 630;
+const int SCREEN_WIDTH = 609;
 const int SCREEN_HEIGHT = 480;
 
 const std::string IMAGE_FILENAME = "Images/Image_47.bmp";
 const std::string T_WALL_FILENAME = "Images/wall.png";
-const std::string T_PATH_FILENAME = "";
+const std::string T_PATH_FILENAME = "Images/floor.png";
 const std::string TEST_IMG_FILENAME = "Images/cheeks.png";
+const std::string T_ALT_FILENAME = "Images/blackbox.png";
 const std::string TEST_FONT_FILENAME = "Fonts/Alice-Regular.ttf";
 
 bool loadMedia();
 void close();
 void renderTextures();
+
+void createTiles();
 
 SDL_Surface* loadSurface(std::string path);
 
@@ -29,7 +34,12 @@ SDL_Surface* gImage = NULL;
 Texture test_image;
 Texture test_ttf;
 Texture wall_img;
+Texture floor_img;
 
+Tile* mp_tile = new Tile();
+std::vector<Tile*> tiles;
+
+bool showHelp = true;
 
 SDL_Surface* loadSurface(std::string path) 
 {
@@ -79,6 +89,12 @@ bool loadMedia()
 		success = false;
 	}
 
+	if (!floor_img.loadFromFile(T_ALT_FILENAME)) 
+	{
+		printf("Failed to load floor image!\n");
+		success = false;
+	}
+
 	if (TTF_Init() == -1) 
 	{
 		printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
@@ -91,7 +107,7 @@ bool loadMedia()
 	else 
 	{
 		SDL_Color textColor = {255, 255, 255};
-		if (!test_ttf.loadFromRenderedText("Test", textColor))
+		if (!test_ttf.loadFromRenderedText("Q to Quit, H to Help, R to regenerate map", textColor))
 		{
 			printf("Failed to render text texture!\n");
 			success = false;
@@ -101,11 +117,39 @@ bool loadMedia()
 	return success;
 }
 
+void createTiles() 
+{
+	
+	for (int i = 0; i < SCREEN_WIDTH; i++) 
+	{
+		mp_tile->setTexture(wall_img);
+		mp_tile->setPosition(mp_tile->getX() + 32, mp_tile->getY());
+		tiles.push_back(mp_tile);
+	}
+}
+
 void renderTextures() 
 {
 	//test_image.render(SCREEN_WIDTH/2,SCREEN_HEIGHT/2);
 	//test_ttf.render(0,0);
+	int currentX = 0;
+	int currentY = 0;
+	for (int i = 0; i < SCREEN_HEIGHT/32; i++) 
+	{
+		for (int j = 0; j < SCREEN_WIDTH/32; j++) 
+		{
+			wall_img.render(currentX, currentY);
+			currentX += 32;
+		}
+		currentX = 0;
+		currentY += 32;
+	}
 	wall_img.render(0,0);
+	floor_img.render(32,32);
+	if (showHelp == true) 
+	{
+		test_ttf.render(0,0);
+	}
 }
 
 void close() 
@@ -169,6 +213,9 @@ int main(int argc, char* args[])
 								break;
 							case SDLK_q:
 								quit = true;
+								break;
+							case SDLK_h:
+								showHelp = !showHelp;
 								break;
 						}
 					}
