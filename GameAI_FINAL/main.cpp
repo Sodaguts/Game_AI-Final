@@ -7,6 +7,8 @@
 #include "Texture.h"
 #include "Tile.h"
 #include <vector>
+#include <iostream>
+#include <queue>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 609;
@@ -18,6 +20,11 @@ const std::string T_PATH_FILENAME = "Images/floor.png";
 const std::string TEST_IMG_FILENAME = "Images/cheeks.png";
 const std::string T_ALT_FILENAME = "Images/blackbox.png";
 const std::string TEST_FONT_FILENAME = "Fonts/Alice-Regular.ttf";
+
+const int MAP_BOUNDARY_TOP_LEFT_X = 32;
+const int MAP_BOUNDARY_TOP_LEFT_Y = 32;
+const int MAP_BOUNDARY_BOT_RIGHT_X = (SCREEN_WIDTH / 32) - 2;
+const int MAP_BOUNDARY_BOT_RIGHT_Y = (SCREEN_HEIGHT / 32) - 2;
 
 bool loadMedia();
 void close();
@@ -36,10 +43,16 @@ Texture test_ttf;
 Texture wall_img;
 Texture floor_img;
 
-Tile* mp_tile = new Tile();
-std::vector<Tile*> tiles;
+Tile m_tile;
+std::vector<Tile> tiles;
 
 bool showHelp = true;
+bool generateMap = true;
+
+void GenerateMap();
+std::vector<std::pair<int, int>> positions;
+
+void clear();
 
 SDL_Surface* loadSurface(std::string path) 
 {
@@ -107,7 +120,7 @@ bool loadMedia()
 	else 
 	{
 		SDL_Color textColor = {255, 255, 255};
-		if (!test_ttf.loadFromRenderedText("Q to Quit, H to Help, R to regenerate map", textColor))
+		if (!test_ttf.loadFromRenderedText("Q to Quit, H for Help, R to regenerate map", textColor))
 		{
 			printf("Failed to render text texture!\n");
 			success = false;
@@ -117,21 +130,83 @@ bool loadMedia()
 	return success;
 }
 
+
+void GenerateMap() 
+{
+	enum directions 
+	{
+		NORTH,
+		SOUTH,
+		EAST,
+		WEST
+	};
+
+	int MAX_BOUND_X = MAP_BOUNDARY_BOT_RIGHT_X;
+	int MIN_BOUND_X = MAP_BOUNDARY_TOP_LEFT_X;
+	int MAX_BOUND_Y = MAP_BOUNDARY_BOT_RIGHT_Y;
+	int MIN_BOUND_Y = MAP_BOUNDARY_TOP_LEFT_Y;
+	int step = 32;
+	int numRooms = 5;
+	int startPosX = 3 * step;
+	int startPosY = 2 * step;
+	int currentPosX = startPosX;
+	int currentPosY = startPosY;
+	std::queue<std::pair<int, int>> queue;
+	//Choose random direction (go to neighbor by adding +32/-32/+32/-32)
+	for (int i = 0; i < numRooms; i++) 
+	{
+		int randNum = 0 + (rand() % 3);
+		switch (randNum) 
+		{
+			case NORTH:
+				currentPosY += step;
+				break;
+			case SOUTH:
+				currentPosY -= step;
+				break;
+			case EAST:
+				currentPosX += step;
+				break;
+			case WEST:
+				currentPosX -= step;
+				break;
+			default:
+				break;
+		}
+		//- if neighbor is greater than MAX_BOUND or less than MIN_BOUND, end
+		if ((currentPosX >= MAX_BOUND_X) || (currentPosX <= MIN_BOUND_X) || (currentPosY >= MAX_BOUND_Y) || (currentPosY <= MIN_BOUND_Y)) 
+		{
+			break;
+		}
+		else 
+		{
+			//- if neighbor has more than one filled neighbor, end
+			//- if MAX_ROOMS has been reached, end
+			//- Random 50% chance, end
+			//Otherwise mark neighbor cell as room(floor.png), add to queue
+		}
+		
+	}
+	generateMap = false;
+}
+
 void createTiles() 
 {
 	
 	for (int i = 0; i < SCREEN_WIDTH; i++) 
 	{
-		mp_tile->setTexture(wall_img);
-		mp_tile->setPosition(mp_tile->getX() + 32, mp_tile->getY());
-		tiles.push_back(mp_tile);
+		m_tile.setTexture(wall_img);
+		m_tile.setPosition(m_tile.getX() + 32, m_tile.getY());
+		tiles.push_back(m_tile);
 	}
+	std::cout << tiles.size() << std::endl;
 }
 
 void renderTextures() 
 {
 	//test_image.render(SCREEN_WIDTH/2,SCREEN_HEIGHT/2);
 	//test_ttf.render(0,0);
+	//Create outer walls
 	int currentX = 0;
 	int currentY = 0;
 	for (int i = 0; i < SCREEN_HEIGHT/32; i++) 
@@ -144,8 +219,42 @@ void renderTextures()
 		currentX = 0;
 		currentY += 32;
 	}
-	wall_img.render(0,0);
-	floor_img.render(32,32);
+	//wall_img.render(0,0);
+	//floor_img.render(32,32);
+	//Test function : render random walkable tiles
+	int floorCurrentX = 32;
+	int floorCurrentY = 32;
+	
+	if (generateMap == true) 
+	{
+		positions.clear();
+		printf("first");
+		for (int i = 0; i < MAP_BOUNDARY_BOT_RIGHT_Y; i++)
+		{
+			for (int j = 0; j < MAP_BOUNDARY_BOT_RIGHT_X; j++)
+			{
+				int randNum = 0 + (rand() % 2);
+				if (randNum == 0)
+				{
+					//floor_img.render(floorCurrentX, floorCurrentY);
+					std::pair<int, int> pos = {floorCurrentX,floorCurrentY};
+					positions.push_back(pos);
+				}
+				floorCurrentX += 32;
+			}
+			floorCurrentX = 32;
+			floorCurrentY += 32;
+		}
+		generateMap = false;
+	}
+	//generateMap = false;
+	for (int i = 0; i < positions.size(); i++) 
+	{
+		std::cout << positions[i].first <<"," <<positions[i].second << std::endl;
+
+		floor_img.render(positions[i].first, positions[i].second);
+	}
+
 	if (showHelp == true) 
 	{
 		test_ttf.render(0,0);
@@ -216,6 +325,9 @@ int main(int argc, char* args[])
 								break;
 							case SDLK_h:
 								showHelp = !showHelp;
+								break;
+							case SDLK_r:
+								generateMap = true;
 								break;
 						}
 					}

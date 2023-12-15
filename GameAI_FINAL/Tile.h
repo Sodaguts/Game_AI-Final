@@ -7,8 +7,8 @@ public:
 	Tile(Texture _texture);
 	~Tile();
 
-	void setTexture(Texture _texture) { mp_texture = &_texture; };
-	Texture* getTexture() { return mp_texture; };
+	void setTexture(Texture _texture) { m_texture = _texture; };
+	Texture getTexture() { return m_texture; };
 	void setPosition(float x, float y);
 	void render();
 
@@ -17,6 +17,6 @@ public:
 
 private:
 	float x, y;
-	Texture* mp_texture;
+	Texture m_texture;
 };
 
