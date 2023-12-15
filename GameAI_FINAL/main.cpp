@@ -4,14 +4,16 @@
 #include <stdio.h>
 #include <string>
 #include "Game.h"
+#include "Texture.h"
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 532;
-const int SCREEN_HEIGHT = 513;
+const int SCREEN_WIDTH = 630;
+const int SCREEN_HEIGHT = 480;
 
 const std::string IMAGE_FILENAME = "Images/Image_47.bmp";
+const std::string T_WALL_FILENAME = "";
+const std::string T_PATH_FILENAME = "";
 
-bool init();
 bool loadMedia();
 void close();
 
@@ -20,6 +22,9 @@ SDL_Surface* loadSurface(std::string path);
 SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* gImage = NULL;
+
+Texture test_image;
+Texture test_ttf;
 
 
 SDL_Surface* loadSurface(std::string path) 
@@ -51,12 +56,7 @@ bool loadMedia()
 	//Loading success flag
 	bool success = true;
 
-	gImage = SDL_LoadBMP("Images/Image_47.bmp");
-	if (gImage == NULL) 
-	{
-		printf("Unable to load image! SDL_ERROR: %s\n", "Images/Image_47.bmp", SDL_GetError());
-		success = false;
-	}
+
 
 	return success;
 }
@@ -118,6 +118,9 @@ int main(int argc, char* args[])
 								printf("right\n");
 								break;
 							case SDLK_ESCAPE:
+								quit = true;
+								break;
+							case SDLK_q:
 								quit = true;
 								break;
 						}

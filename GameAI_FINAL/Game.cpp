@@ -56,6 +56,18 @@ bool Game::init(const int SCREEN_WIDTH, const int SCREEN_HEIGHT)
 	return success;
 }
 
+bool Game::setFont(std::string filename, float size) 
+{
+	bool success = true;
+	mp_Font = TTF_OpenFont(filename.c_str(), size);
+	if (mp_Font == NULL) 
+	{
+		printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
+		success = false;
+	}
+	return success;
+}
+
 void Game::close() 
 {
 	SDL_DestroyRenderer(mp_Renderer);

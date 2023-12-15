@@ -17,6 +17,9 @@ public:
 
 	SDL_Renderer* getRenderer() { return mp_Renderer; };
 	SDL_Window* getWindow() { return mp_Window; };
+	TTF_Font* getFont() { return mp_Font; };
+
+	bool setFont(std::string filename, float size);
 private:
 	void close();
 	int SCREEN_W = 0;
@@ -25,5 +28,6 @@ private:
 
 	SDL_Window* mp_Window = NULL;
 	SDL_Renderer* mp_Renderer = NULL;
+	TTF_Font* mp_Font = NULL;
 };
 
