@@ -11,9 +11,10 @@ const int SCREEN_WIDTH = 630;
 const int SCREEN_HEIGHT = 480;
 
 const std::string IMAGE_FILENAME = "Images/Image_47.bmp";
-const std::string T_WALL_FILENAME = "";
+const std::string T_WALL_FILENAME = "Images/wall.png";
 const std::string T_PATH_FILENAME = "";
 const std::string TEST_IMG_FILENAME = "Images/cheeks.png";
+const std::string TEST_FONT_FILENAME = "Fonts/Alice-Regular.ttf";
 
 bool loadMedia();
 void close();
@@ -27,6 +28,7 @@ SDL_Surface* gImage = NULL;
 
 Texture test_image;
 Texture test_ttf;
+Texture wall_img;
 
 
 SDL_Surface* loadSurface(std::string path) 
@@ -58,10 +60,42 @@ bool loadMedia()
 	//Loading success flag
 	bool success = true;
 
+	int imgFlags = IMG_INIT_PNG;
+	if (!(IMG_Init(imgFlags) & imgFlags))
+	{
+		printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+		success = false;
+	}
+
 	if (!test_image.loadFromFile(TEST_IMG_FILENAME)) 
 	{
 		printf("Failed to load test image!\n");
 		success = false;
+	}
+
+	if (!wall_img.loadFromFile(T_WALL_FILENAME)) 
+	{
+		printf("Failed to load wall image!\n");
+		success = false;
+	}
+
+	if (TTF_Init() == -1) 
+	{
+		printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+		success = false;
+	}
+	if (!(Game::getInstance()->setFont(TEST_FONT_FILENAME,28))) 
+	{
+		success = false;
+	}
+	else 
+	{
+		SDL_Color textColor = {255, 255, 255};
+		if (!test_ttf.loadFromRenderedText("Test", textColor))
+		{
+			printf("Failed to render text texture!\n");
+			success = false;
+		}
 	}
 
 	return success;
@@ -69,7 +103,9 @@ bool loadMedia()
 
 void renderTextures() 
 {
-	test_image.render(0,0);
+	//test_image.render(SCREEN_WIDTH/2,SCREEN_HEIGHT/2);
+	//test_ttf.render(0,0);
+	wall_img.render(0,0);
 }
 
 void close() 
@@ -137,10 +173,6 @@ int main(int argc, char* args[])
 						}
 					}
 				} 
-
-				//Apply image
-				//SDL_BlitSurface(gImage, NULL, gScreenSurface, NULL);
-				//Update surface
 				renderTextures();
 				SDL_RenderPresent(p_game->getRenderer());
 			}
