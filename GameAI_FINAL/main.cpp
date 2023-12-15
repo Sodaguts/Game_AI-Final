@@ -13,9 +13,11 @@ const int SCREEN_HEIGHT = 480;
 const std::string IMAGE_FILENAME = "Images/Image_47.bmp";
 const std::string T_WALL_FILENAME = "";
 const std::string T_PATH_FILENAME = "";
+const std::string TEST_IMG_FILENAME = "Images/cheeks.png";
 
 bool loadMedia();
 void close();
+void renderTextures();
 
 SDL_Surface* loadSurface(std::string path);
 
@@ -56,9 +58,18 @@ bool loadMedia()
 	//Loading success flag
 	bool success = true;
 
-
+	if (!test_image.loadFromFile(TEST_IMG_FILENAME)) 
+	{
+		printf("Failed to load test image!\n");
+		success = false;
+	}
 
 	return success;
+}
+
+void renderTextures() 
+{
+	test_image.render(0,0);
 }
 
 void close() 
@@ -128,9 +139,10 @@ int main(int argc, char* args[])
 				} 
 
 				//Apply image
-				SDL_BlitSurface(gImage, NULL, gScreenSurface, NULL);
+				//SDL_BlitSurface(gImage, NULL, gScreenSurface, NULL);
 				//Update surface
-				SDL_UpdateWindowSurface(p_game->getWindow());
+				renderTextures();
+				SDL_RenderPresent(p_game->getRenderer());
 			}
 		}
 	}
